@@ -7,7 +7,7 @@ import java.util.*;
  */
 public class BinarySearchTree<E extends Comparable<E>>
 {
-    private class Node<T> {
+    class Node<T> {
         T value;
         Node<T> left;
         Node<T> right;
@@ -18,7 +18,7 @@ public class BinarySearchTree<E extends Comparable<E>>
             right = null;
         }
     }
-    private Node<E> root;
+    Node<E> root;
     
     public BinarySearchTree() {
         root = null;
@@ -27,7 +27,7 @@ public class BinarySearchTree<E extends Comparable<E>>
     public void insert(E value) {
         root = insertRec(root, value);
     }
-    private Node<E> insertRec(Node<E> node, E value) {
+    Node<E> insertRec(Node<E> node, E value) {
         if (node == null) {
             node = new Node<>(value);
             return node;
@@ -38,9 +38,27 @@ public class BinarySearchTree<E extends Comparable<E>>
             node.right = insertRec(node.right, value);
         return node;
     }
+    Node<E> insertIter(Node<E> node, E value) {
+        Node<E> x = node;
+        Node<E> parent = null;
+        if (node == null)
+            return new Node<>(value);
+        while (x != null) {
+            parent = x;
+            if (value.compareTo(x.value) < 0)
+                x = x.left;
+            else
+                x = x.right;
+        }
+        if (value.compareTo(parent.value) < 0)
+            parent.left = new Node<>(value);
+        else
+            parent.right = new Node<>(value);
+        return node;
+    }
     
     public void delete(E value) {
-        root = deleteRec(root, value);
+        root = deleteIter(root, value);
     }
     private Node<E> deleteRec(Node<E> node, E value) {
         if (node == null)
@@ -54,10 +72,116 @@ public class BinarySearchTree<E extends Comparable<E>>
                 return node.right;
             else if (node.right == null)
                 return node.left;
-            node.value = findMin();
+            node.value = findMinRec(node);
             node.right = deleteRec(node.right, node.value);
         }
         return node;
+    }
+    private Node<E> deleteIter(Node<E> node, E value) {
+        return null;
+        /** Node<E> parent = null, x = node;
+        boolean left = false;
+        
+        if (node == null)
+            return node;
+        
+        while (x != null) {
+            if (x.value.equals(value))
+                break;
+            
+            parent = x;
+            if (value.compareTo(x.value) < 0) {
+                left = true;
+                x = x.left;
+            } else {
+                left = false;
+                x = x.right;
+            }
+        }
+        
+        if (parent == null) {
+            if (x != null) {
+                if (x.left == null && x.right == null)
+                    return null;
+                if (x.left != null && x.right != null) {
+                    Node<E> y = x;
+                    x = x.right;
+                    boolean right = x.left == null;
+                    while (x.left != null) {
+                        y = x;
+                        x = x.left;
+                    }
+                    if (right)
+                        y.right = x.right;
+                    else
+                        y.left = x.left;
+                    x.right = null;
+                    
+                    Node<E> next = x;
+                    x.value = next.value;
+                } else if (x.left != null)
+                    x = x.left;
+                else
+                    x = x.right;
+            }
+            return x;
+        }
+        
+        if (left) {
+            if (x != null) {
+                if (x.left == null && x.right == null)
+                    parent.left = null;
+                if (x.left != null && x.right != null) {
+                    Node<E> y = x;
+                    x = x.right;
+                    boolean right = x.left == null;
+                    while (x.left != null) {
+                        y = x;
+                        x = x.left;
+                    }
+                    if (right)
+                        y.right = x.right;
+                    else
+                        y.left = x.left;
+                    x.right = null;
+                    
+                    Node<E> next = x;
+                    x.value = next.value;
+                } else if (x.left != null)
+                    x = x.left;
+                else
+                    x = x.right;
+            }
+            parent.left = x;
+        } else {
+            if (x != null) {
+                if (x.left == null && x.right == null)
+                    parent.left = null;
+                if (x.left != null && x.right != null) {
+                    Node<E> y = x;
+                    x = x.right;
+                    boolean right = x.left == null;
+                    while (x.left != null) {
+                        y = x;
+                        x = x.left;
+                    }
+                    if (x.left == null)
+                        y.right = x.right;
+                    else
+                        y.left = x.left;
+                    x.right = null;
+                    
+                    Node<E> next = x;
+                    x.value = next.value;
+                } else if (x.left != null)
+                    x = x.left;
+                else
+                    x = x.right;
+            }
+            parent.right = x;
+        }
+        
+        return node; **/
     }
     public E findMin() {
         return findMinRec(root);
@@ -67,6 +191,12 @@ public class BinarySearchTree<E extends Comparable<E>>
             return node.value;
         return findMinRec(node.left);
     }
+    private E findMinIter(Node<E> node) {
+        Node<E> curr = node;
+        while (curr.left != null)
+            curr = curr.left;
+        return curr.value;
+    }
     public E findMax() {
         return findMaxRec(root);
     }
@@ -74,6 +204,12 @@ public class BinarySearchTree<E extends Comparable<E>>
         if (node.right == null)
             return node.value;
         return findMaxRec(node.right);
+    }
+    private E findMaxIter(Node<E> node) {
+        Node<E> curr = node;
+        while (curr.right != null)
+            curr = curr.right;
+        return curr.value;
     }
     
     public E findNext(E value) {
@@ -93,7 +229,24 @@ public class BinarySearchTree<E extends Comparable<E>>
         return next.value;
     }
     private E findNextIter(Node<E> node, E value) {
-        return null;
+        E next = null;
+        
+        while (true) {
+            if (value.compareTo(node.value) < 0) {
+                next = node.value;
+                node = node.left;
+            } else if (value.compareTo(node.value) > 0)
+                node = node.right;
+            else {
+                if (node.right != null)
+                    next = findMinIter(node.right);
+                break;
+            }
+            if (node == null)
+                return null;
+        }
+        
+        return next;
     }
     public E findPrev(E value) {
         return findPrevRec(root, null, value);
@@ -113,7 +266,24 @@ public class BinarySearchTree<E extends Comparable<E>>
         return prev.value;
     }
     private E findPrevIter(Node<E> node, E value) {
-        return null;
+        E prev = null;
+        
+        while (true) {
+            if (value.compareTo(node.value) < 0)
+                node = node.left;
+            else if (value.compareTo(node.value) > 0) {
+                prev = node.value;
+                node = node.right;
+            } else {
+                if (node.left != null)
+                    prev = findMaxIter(node.left);
+                break;
+            }
+            if (node == null)
+                return null;
+        }
+        
+        return prev;
     }
     
     public static int[] getRandomArray(int n) {
